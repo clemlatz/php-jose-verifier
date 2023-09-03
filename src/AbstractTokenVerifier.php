@@ -10,6 +10,7 @@ use Facile\JoseVerifier\Exception\InvalidTokenException;
 use Facile\JoseVerifier\Internal\Checker\AuthTimeChecker;
 use Facile\JoseVerifier\Internal\Checker\AzpChecker;
 use Facile\JoseVerifier\Internal\Checker\NonceChecker;
+use Facile\JoseVerifier\Internal\Clock;
 use Facile\JoseVerifier\Internal\Validate;
 use Facile\JoseVerifier\JWK\JwksProviderInterface;
 use Facile\JoseVerifier\JWK\MemoryJwksProvider;
@@ -126,10 +127,10 @@ abstract class AbstractTokenVerifier implements TokenVerifierInterface
         $validator = Validate::withToken($jwt)
             ->withJWKSet($this->buildJwks($jwt))
             ->withClaim(new IssuerChecker([$expectedIssuer], true))
-            ->withClaim(new IssuedAtChecker($this->clockTolerance, true))
+            ->withClaim(new IssuedAtChecker($this->clockTolerance, true, new Clock()))
             ->withClaim(new AudienceChecker($this->clientId, true))
-            ->withClaim(new ExpirationTimeChecker($this->clockTolerance))
-            ->withClaim(new NotBeforeChecker($this->clockTolerance, true));
+            ->withClaim(new ExpirationTimeChecker($this->clockTolerance, clock: new Clock()))
+            ->withClaim(new NotBeforeChecker($this->clockTolerance, true, new Clock()));
 
         if (null !== $this->expectedAzp) {
             $validator = $validator->withClaim(new AzpChecker($this->expectedAzp));
